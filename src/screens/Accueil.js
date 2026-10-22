@@ -1,15 +1,33 @@
 // src/screens/Accueil.js
-import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useContext } from 'react';
+import { AuthContext } from '../context/AuthContext';
 
 export default function Accueil({ navigation }) {
+  // On récupère l'utilisateur connecté (s'il y en a un)
+  const { user } = useContext(AuthContext);
+
   return (
     <View style={styles.container}>
+      
+     <TouchableOpacity 
+  onPress={() => navigation.navigate('MenuProfil')} 
+  style={styles.btnProfil}
+>
+  <Text style={{ fontSize: 28 }}>👤</Text>
+</TouchableOpacity>
+
+      {/* EN-TÊTE */}
       <View style={styles.header}>
         <Text style={styles.titre}>SHAMS TOUR</Text>
         <Text style={styles.slogan}>L'art de voyager, émotion de découvrir.</Text>
       </View>
 
+      {/* MESSAGE DE BIENVENUE */}
       <View style={styles.contenu}>
+        {user ? (
+          <Text style={styles.bienvenue}>Bonjour {user.prenom} 👋</Text>
+        ) : null}
         <Text style={styles.message}>
           Découvrez Majunga avec ceux qui la connaissent le mieux.
         </Text>
@@ -18,16 +36,16 @@ export default function Accueil({ navigation }) {
         </Text>
       </View>
 
+      {/* BOUTONS D'ACTION */}
       <View style={styles.footer}>
         <TouchableOpacity 
           style={styles.bouton}
           onPress={() => navigation.navigate('Criteres')}
         >
           <Text style={styles.boutonTexte}>Commencer la préparation</Text>
-          
         </TouchableOpacity>
         
-         <TouchableOpacity 
+        <TouchableOpacity 
           onPress={() => navigation.navigate('Suivi')} 
           style={{ marginTop: 15, marginBottom: 20, alignItems: 'center' }}
         >
@@ -40,7 +58,6 @@ export default function Accueil({ navigation }) {
           Aucun paiement en ligne.{'\n'}
           Vous serez rappelé pour confirmer.
         </Text>
-        
       </View>
     </View>
   );
@@ -48,6 +65,16 @@ export default function Accueil({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
+  btnProfil: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 10,
+    backgroundColor: 'white',
+    padding: 8,
+    borderRadius: 20,
+    elevation: 3,
+  },
   header: { 
     backgroundColor: '#C0392B', 
     padding: 40, 
@@ -71,6 +98,13 @@ const styles = StyleSheet.create({
     flex: 1, 
     justifyContent: 'center', 
     padding: 30 
+  },
+  bienvenue: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#C0392B',
+    textAlign: 'center',
+    marginBottom: 20,
   },
   message: { 
     fontSize: 22, 
