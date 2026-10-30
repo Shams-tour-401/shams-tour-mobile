@@ -5,9 +5,7 @@ import {
   StyleSheet, ActivityIndicator 
 } from 'react-native';
 import axios from 'axios';
-
-// ⚠️ IMPORTANT : Mettez votre adresse IP locale ici 
-const API_URL = 'http://192.168.1.99:3000/api'; 
+import { API_URL } from '../config'; 
 
 export default function Propositions({ route, navigation }) {
   const { criteres } = route.params;
@@ -22,11 +20,14 @@ export default function Propositions({ route, navigation }) {
   const rechercher = async () => {
     try {
       setLoading(true);
-      const response = await axios.post(`${API_URL}/circuits/recherche`, criteres);
+      // 👇 On utilise API_URL de config.js et on ajoute le timeout de 30s
+      const response = await axios.post(`${API_URL}/circuits/recherche`, criteres, {
+        timeout: 30000 
+      });
       setCircuits(response.data.circuits || []);
     } catch (error) {
       console.error(error);
-      setErreur('Erreur de connexion au serveur');
+      setErreur('Erreur de connexion au serveur. Veuillez réessayer.');
     } finally {
       setLoading(false);
     }
@@ -45,6 +46,12 @@ export default function Propositions({ route, navigation }) {
     return (
       <View style={styles.centre}>
         <Text style={styles.erreur}>{erreur}</Text>
+        <TouchableOpacity 
+          style={styles.boutonRetour}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.boutonTexte}>Modifier mes critères</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -73,24 +80,24 @@ export default function Propositions({ route, navigation }) {
         data={circuits}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
-       <View style={styles.card}>
-  <Text style={styles.cardTitre}>{item.nom}</Text>
-  <Text style={styles.cardDesc}>{item.description}</Text>
-  
-  {/* LA RAISON (demandée par le CDC) */}
-  <View style={styles.raisonBox}>
-    <Text style={styles.raisonTexte}>💡 {item.raison}</Text>
-  </View>
+          <View style={styles.card}>
+            <Text style={styles.cardTitre}>{item.nom}</Text>
+            <Text style={styles.cardDesc}>{item.description}</Text>
+            
+            {/* LA RAISON (demandée par le CDC) */}
+            <View style={styles.raisonBox}>
+              <Text style={styles.raisonTexte}>💡 {item.raison}</Text>
+            </View>
 
-  <View style={styles.cardInfo}>
-    <Text style={styles.cardDuree}>{item.duree_jours} jours</Text>
-    <Text style={styles.cardPrix}>{item.prix_estime.toLocaleString()} Ar</Text>
-  </View>
+            <View style={styles.cardInfo}>
+              <Text style={styles.cardDuree}>{item.duree_jours} jours</Text>
+              <Text style={styles.cardPrix}>{item.prix_estime.toLocaleString()} Ar</Text>
+            </View>
 
-  <TouchableOpacity style={styles.cardBouton} onPress={() => navigation.navigate('Programme', { circuit: item, criteres })}>
-    <Text style={styles.cardBoutonTexte}>Voir le programme →</Text>
-  </TouchableOpacity>
-</View>
+            <TouchableOpacity style={styles.cardBouton} onPress={() => navigation.navigate('Programme', { circuit: item, criteres })}>
+              <Text style={styles.cardBoutonTexte}>Voir le programme →</Text>
+            </TouchableOpacity>
+          </View>
         )}
       />
     </View>
@@ -101,7 +108,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5', padding: 15 },
   centre: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
   chargement: { marginTop: 15, color: '#7f8c8d' },
-  erreur: { color: '#C0392B', fontSize: 16 },
+  erreur: { color: '#C0392B', fontSize: 16, marginBottom: 20 },
   aucun: { fontSize: 18, color: '#7f8c8d', marginBottom: 20 },
   titre: { 
     fontSize: 18, 
@@ -145,15 +152,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600'
   },
-  cardRythme: { 
-    backgroundColor: '#FEF5E7', 
-    paddingHorizontal: 12, 
-    paddingVertical: 4,
-    borderRadius: 12,
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#E67E22'
-  },
   cardBouton: { 
     paddingTop: 15,
     borderTopWidth: 1,
@@ -175,8 +173,7 @@ const styles = StyleSheet.create({
     color: 'white', 
     fontWeight: 'bold' 
   },
-
   raisonBox: { backgroundColor: '#FEF5E7', padding: 10, borderRadius: 8, marginBottom: 10 },
-raisonTexte: { color: '#E67E22', fontSize: 12, fontStyle: 'italic' },
-cardPrix: { color: '#C0392B', fontWeight: 'bold', fontSize: 16 },
+  raisonTexte: { color: '#E67E22', fontSize: 12, fontStyle: 'italic' },
+  cardPrix: { color: '#C0392B', fontWeight: 'bold', fontSize: 16 },
 });

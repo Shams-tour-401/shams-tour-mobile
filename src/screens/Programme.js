@@ -2,22 +2,21 @@
 import { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import axios from 'axios';
-
-const API_URL = 'http://192.168.1.99:3000/api'; // Votre IP
+import { API_URL } from '../config'; 
 
 export default function Programme({ route, navigation }) {
   const { circuit, criteres } = route.params;
   
   // On stocke les éléments modifiables et le prix dans des states
   const [elements, setElements] = useState(circuit.elements || []);
-  const [prix, setPrix] = useState(circuit.prix_estime);
+  const [prix, setPrix] = useState(circuit.prix_estime || 0);
   const [loading, setLoading] = useState(false);
 
   // Fonction pour supprimer une activité
   const supprimerActivite = async (elementASupprimer) => {
     Alert.alert(
       "Supprimer l'activité",
-      `Voulez-vous retirer "${elementASupprimer.activite_nom}" du programme ?`,
+      `Voulez-vous retirer "${elementASupprimer.activite_nom || 'cet élément'}" du programme ?`,
       [
         { text: "Annuler", style: "cancel" },
         { 
@@ -30,17 +29,21 @@ export default function Programme({ route, navigation }) {
               const nouveauxElements = elements.filter(e => e.id !== elementASupprimer.id);
               
               // 2. On demande à l'API de recalculer le prix
+              // 👇 On utilise API_URL et on ajoute un timeout de 30s
               const response = await axios.post(`${API_URL}/circuits/recalculer`, {
                 elements: nouveauxElements,
                 adultes: criteres.adultes,
                 enfants: criteres.enfants,
                 ages_enfants: criteres.ages_enfants
+              }, {
+                timeout: 30000
               });
 
               // 3. On met à jour l'écran
               setElements(nouveauxElements);
               setPrix(response.data.nouveau_prix);
             } catch (error) {
+              console.error(error);
               Alert.alert('Erreur', 'Impossible de recalculer le prix');
             } finally {
               setLoading(false);

@@ -2,9 +2,8 @@
 import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Switch, Alert } from 'react-native';
 import axios from 'axios';
-
-// 1. ON MET LA VRAIE IP ICI
-const API_URL = 'http://192.168.1.99:3000/api'; 
+import { API_URL } from '../config'; 
+ 
 
 export default function Formulaire({ route, navigation }) {
   const { circuit, criteres } = route.params;
@@ -25,7 +24,7 @@ export default function Formulaire({ route, navigation }) {
       setLoading(true);
       const payload = {
         destination_id: 1,
-        date_depart: criteres.date_depart || '2026-12-15', // Sécurité si la date est vide
+        date_depart: criteres.date_depart || '2026-12-15',
         nombre_jours: parseInt(criteres.nombre_jours) || 2,
         adultes: parseInt(criteres.adultes) || 2,
         enfants: parseInt(criteres.enfants) || 0,
@@ -42,11 +41,14 @@ export default function Formulaire({ route, navigation }) {
         cle_envoi: Date.now().toString()
       };
 
-      const response = await axios.post(`${API_URL}/demandes`, payload);
+      // 👇 Ajout du timeout de 30 secondes
+      const response = await axios.post(`${API_URL}/demandes`, payload, {
+        timeout: 30000
+      });
+      
       navigation.replace('Confirmation', { demande: response.data });
     } catch (error) {
       console.error(error);
-      // 2. ON AFFICHE LA VRAIE ERREUR DE L'API
       const msg = error.response?.data?.error || error.message;
       Alert.alert('Erreur', msg);
     } finally {
@@ -58,7 +60,6 @@ export default function Formulaire({ route, navigation }) {
     <ScrollView style={styles.container} contentContainerStyle={styles.contenu}>
       <Text style={styles.titre}>Vos coordonnées</Text>
       
-      {/* Petit rappel des dates pour rassurer le client */}
       <View style={styles.recap}>
         <Text style={styles.recapText}>Circuit : {circuit.nom}</Text>
         <Text style={styles.recapText}>Départ prévu : {criteres.date_depart}</Text>

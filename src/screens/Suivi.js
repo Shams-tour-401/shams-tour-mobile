@@ -1,9 +1,8 @@
 // src/screens/Suivi.js
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import axios from 'axios';
-
-const API_URL = 'http://192.168.1.99:3000/api';
+import { API_URL } from '../config'; 
 
 export default function Suivi() {
   const [reference, setReference] = useState('');
@@ -18,11 +17,15 @@ export default function Suivi() {
 
     try {
       setLoading(true);
-      // On utilise la route par référence (on va l'ajouter dans l'API)
-      const response = await axios.get(`${API_URL}/demandes/suivi/ref/${reference}`);
+      // 👇 2. On utilise API_URL (Render) et on ajoute un timeout de 30s
+      const response = await axios.get(`${API_URL}/demandes/suivi/ref/${reference.trim()}`, {
+        timeout: 30000
+      });
       setDemande(response.data);
     } catch (error) {
-      Alert.alert('Erreur', 'Référence introuvable ou erreur serveur');
+      console.error(error);
+      const msg = error.response?.data?.error || 'Référence introuvable ou erreur serveur';
+      Alert.alert('Erreur', msg);
       setDemande(null);
     } finally {
       setLoading(false);
@@ -43,7 +46,11 @@ export default function Suivi() {
       />
 
       <TouchableOpacity style={styles.bouton} onPress={chercherDemande} disabled={loading}>
-        <Text style={styles.boutonTexte}>{loading ? 'Recherche...' : 'Rechercher'}</Text>
+        {loading ? (
+          <ActivityIndicator color="white" />
+        ) : (
+          <Text style={styles.boutonTexte}>Rechercher</Text>
+        )}
       </TouchableOpacity>
 
       {demande && (
@@ -60,11 +67,11 @@ export default function Suivi() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5', padding: 20 },
+  container: { flex: 1, backgroundColor: '#f5f5f5', padding: 20, justifyContent: 'center' },
   titre: { fontSize: 24, fontWeight: 'bold', color: '#2C3E50', marginBottom: 5 },
   sousTitre: { fontSize: 14, color: '#7f8c8d', marginBottom: 20 },
   input: { backgroundColor: 'white', padding: 15, borderRadius: 8, borderWidth: 1, borderColor: '#ddd', fontSize: 16 },
-  bouton: { backgroundColor: '#C0392B', padding: 15, borderRadius: 8, alignItems: 'center', marginTop: 20 },
+  bouton: { backgroundColor: '#C0392B', padding: 15, borderRadius: 8, alignItems: 'center', marginTop: 20, height: 50, justifyContent: 'center' },
   boutonTexte: { color: 'white', fontWeight: 'bold', fontSize: 16 },
   resultat: { backgroundColor: 'white', padding: 20, borderRadius: 8, marginTop: 30, borderLeftWidth: 4, borderLeftColor: '#27AE60' },
   refText: { fontSize: 20, fontWeight: 'bold', color: '#C0392B', marginBottom: 10 },
